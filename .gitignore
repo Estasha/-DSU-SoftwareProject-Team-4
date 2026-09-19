@@ -1,0 +1,27 @@
+# 환경변수 (API 키 등 — 절대 커밋 금지)
+.env
+.env.local
+frontend/.env
+backend/.env
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+backend/.pytest_cache/
+
+# OS / 에디터
+.DS_Store
+.vscode/
+.idea/
+
+# 데이터 (원본 CSV는 용량이 클 수 있어 기본은 제외 — 팀 방침에 따라 조정)
+data/raw/*.csv
+!data/raw/.gitkeep
