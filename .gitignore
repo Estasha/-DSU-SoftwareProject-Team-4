@@ -16,6 +16,7 @@ __pycache__/
 .venv/
 venv/
 backend/.pytest_cache/
+backend/*.db
 
 # OS / 에디터
 .DS_Store
