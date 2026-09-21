@@ -43,7 +43,7 @@ npm run dev
 |---|---|
 | 프론트엔드 | React (Vite) + Tailwind CSS |
 | 백엔드 | Python + FastAPI |
-| 데이터베이스 | PostgreSQL (Supabase) |
+| 데이터베이스 | Turso (libSQL) |
 | 데이터 전처리 | Python + pandas |
 | 배포 | Vercel(프론트) + Render(백엔드) |
 
