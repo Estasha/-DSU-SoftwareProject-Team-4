@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 400" width="920" height="400" role="img" aria-label="main에 직행 머지되던 PR 2번과 3번 이후 4e75a09 지점에서 dev 브랜치가 새로 만들어졌고, 지금은 dev에서 갈라진 feature/pm-readme-tutorial 브랜치가 PR 4번으로 dev에 합쳐지길 기다리는 중이며, 이후 dev가 주기적으로 main에 합쳐질 예정임을 보여주는 다이어그램">
+  <rect x="0" y="0" width="920" height="400" rx="12" fill="#FFFFFF"/>
+  <defs>
+    <marker id="h-main" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <polygon points="0,0 10,5 0,10" fill="#2E5AAC"/>
+    </marker>
+    <marker id="h-pending" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <polygon points="0,0 10,5 0,10" fill="none" stroke="#B96A16" stroke-width="1.4"/>
+    </marker>
+  </defs>
+
+  <!-- legend -->
+  <g font-family="Arial, sans-serif" font-size="11.5" fill="#5B6472">
+    <rect x="20" y="14" width="14" height="3" fill="#2E5AAC"/><text x="38" y="20">main</text>
+    <rect x="90" y="14" width="14" height="3" fill="#147A63"/><text x="108" y="20">dev</text>
+    <rect x="155" y="14" width="14" height="3" fill="#B96A16"/><text x="173" y="20">feature</text>
+    <text x="250" y="20">실선 = 머지 완료 · 점선 = 대기/예정</text>
+  </g>
+
+  <line x1="50" y1="50" x2="860" y2="50" stroke="#2E5AAC" stroke-width="2.5"/>
+  <text x="20" y="45" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#2E5AAC">main</text>
+
+  <circle cx="60" cy="50" r="4.5" fill="#2E5AAC"/>
+  <text x="60" y="32" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#1B1F24">first</text>
+  <text x="60" y="78" text-anchor="middle" font-family="Consolas, monospace" font-size="10.5" fill="#5B6472">bdccf22</text>
+
+  <path d="M 150 50 C 160 50, 175 90, 195 90 L 195 90 C 215 90, 210 52, 220 50"
+        fill="none" stroke="#B96A16" stroke-width="1.8"/>
+  <circle cx="220" cy="50" r="4.5" fill="#2E5AAC"/>
+  <text x="220" y="32" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#1B1F24">PR #2 머지</text>
+  <text x="220" y="108" text-anchor="middle" font-family="Consolas, monospace" font-size="10.5" fill="#B96A16">billyux/frontend-test</text>
+  <text x="220" y="78" text-anchor="middle" font-family="Consolas, monospace" font-size="10.5" fill="#5B6472">0ec9504</text>
+
+  <path d="M 320 50 C 330 50, 345 90, 365 90 L 365 90 C 385 90, 380 52, 380 50"
+        fill="none" stroke="#B96A16" stroke-width="1.8"/>
+  <circle cx="380" cy="50" r="4.5" fill="#2E5AAC"/>
+  <text x="380" y="32" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#1B1F24">PR #3 머지</text>
+  <text x="380" y="108" text-anchor="middle" font-family="Consolas, monospace" font-size="10.5" fill="#B96A16">feature/pm-docs-turso-update</text>
+  <text x="380" y="78" text-anchor="middle" font-family="Consolas, monospace" font-size="10.5" fill="#5B6472">4e75a09</text>
+
+  <line x1="380" y1="50" x2="860" y2="50" stroke="#2E5AAC" stroke-width="2.5"/>
+
+  <path d="M 380 50 C 400 50, 400 190, 420 190" fill="none" stroke="#147A63" stroke-width="2.5"/>
+  <line x1="420" y1="190" x2="860" y2="190" stroke="#147A63" stroke-width="2.5"/>
+  <circle cx="420" cy="190" r="4" fill="#147A63"/>
+  <text x="20" y="185" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#147A63">dev</text>
+  <text x="430" y="207" font-family="Consolas, monospace" font-size="10.5" fill="#5B6472">checkout -b dev (4e75a09에서 생성)</text>
+
+  <circle cx="500" cy="190" r="4" fill="#147A63"/>
+  <path d="M 500 190 C 515 190, 530 250, 555 250 L 575 250"
+        fill="none" stroke="#B96A16" stroke-width="2"/>
+  <circle cx="590" cy="250" r="4.5" fill="#B96A16"/>
+  <text x="590" y="234" text-anchor="middle" font-family="Consolas, monospace" font-size="10.5" fill="#5B6472">b80fab9</text>
+  <text x="500" y="316" font-family="Consolas, monospace" font-size="10.5" fill="#B96A16">feature/pm-readme-tutorial</text>
+
+  <path d="M 605 250 C 630 250, 645 192, 660 190"
+        fill="none" stroke="#B96A16" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#h-pending)"/>
+  <text x="662" y="180" font-family="Arial, sans-serif" font-size="11" fill="#B96A16">PR #4 → dev</text>
+  <text x="662" y="194" font-family="Arial, sans-serif" font-size="10.5" fill="#5B6472">(리뷰 대기 중)</text>
+
+  <line x1="760" y1="20" x2="760" y2="340" stroke="#5B6472" stroke-width="1.2" stroke-dasharray="3 4" opacity="0.6"/>
+  <text x="768" y="34" font-family="Arial, sans-serif" font-size="11" fill="#5B6472">지금</text>
+
+  <path d="M 850 190 L 850 62" fill="none" stroke="#2E5AAC" stroke-width="1.8" stroke-dasharray="5 4" opacity="0.55" marker-end="url(#h-main)"/>
+  <text x="720" y="145" font-family="Arial, sans-serif" font-size="10.5" fill="#5B6472" opacity="0.85">다음 단계: dev → main PR</text>
+  <text x="720" y="159" font-family="Arial, sans-serif" font-size="10.5" fill="#5B6472" opacity="0.85">(주기적 배포, 아직 안 함)</text>
+</svg>
