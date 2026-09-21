@@ -1,4 +1,4 @@
-"""데이터베이스 연결 설정 (Supabase PostgreSQL)"""
+"""데이터베이스 연결 설정 (Turso libSQL)"""
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
