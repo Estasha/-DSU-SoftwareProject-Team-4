@@ -40,12 +40,12 @@
 | 프론트엔드 | React (Vite) + Tailwind CSS |
 | 시각화/지도 | Recharts, 카카오맵 JavaScript SDK |
 | 백엔드 | Python + FastAPI (+ Uvicorn, SQLAlchemy, requests, python-dotenv, CORS 설정) |
-| 데이터베이스 | PostgreSQL (Supabase 클라우드) |
+| 데이터베이스 | Turso (libSQL 클라우드) |
 | 데이터 전처리 | Python + pandas |
 | 배포 | 프론트: Vercel/Netlify, 백엔드: Render/Railway |
 | 협업 도구 | GitHub, Notion |
 
-**데이터 파이프라인**: 공공데이터(CSV/API) → Python/pandas 전처리·점수화 → PostgreSQL(Supabase) 적재 → FastAPI REST API → React 프론트엔드 조회·시각화
+**데이터 파이프라인**: 공공데이터(CSV/API) → Python/pandas 전처리·점수화 → Turso(libSQL) 적재 → FastAPI REST API → React 프론트엔드 조회·시각화
 
 ---
 
@@ -60,12 +60,12 @@
 
 ## 팀 역할 분담
 
-| 역할 | 인원(4인 기준) | 주요 업무 |
+| 역할 | 담당자 | 주요 업무 |
 |---|---|---|
-| 데이터 | 1~2명 | 공공데이터 수집·전처리, 매핑·정규화 공식, DB 스키마 설계 |
-| 백엔드 | 1명 | API 서버, 점수화 로직 연동, DB 마이그레이션 |
-| 프론트엔드 | 1~2명 | 화면 UI, API 연동, 시각화 |
-| 기획/발표 | 1명 (겸임 가능) | 요구사항 정리, 문서화, 발표자료 |
+| 데이터 | 구본국 | 데이터베이스 설계·관리, 공공데이터 수집·전처리, 매핑·정규화 공식 |
+| 백엔드 | 김동진 | API 서버, 점수화 로직 연동, DB 마이그레이션 |
+| 프론트엔드 | 문성완 | 화면 UI, API 연동, 시각화 |
+| PM(기획/발표) | 이승엽 | 요구사항 정리, 문서화, 발표자료, 프론트엔드·백엔드 보조 |
 
 ---
 
