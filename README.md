@@ -55,6 +55,16 @@ npm run dev
 
 자세한 배경 설명은 `docs/프로젝트_가이드.md`의 GitHub 협업 워크플로우 섹션 참고. 아래는 실제로 따라 치면 되는 명령어 튜토리얼입니다.
 
+## 브랜치 관계 한눈에 보기
+
+<img src="./docs/diagrams/branch-rule.svg" alt="feature 브랜치는 dev에서 갈라져 나와 PR로 dev에 합쳐지고, dev는 주기적으로 main에 합쳐지는 구조" width="820">
+
+feature 브랜치는 `dev`에서 갈라져 나와, 작업이 끝나면 PR을 거쳐 다시 `dev`로 합쳐집니다. `dev`에 기능이 어느 정도 쌓이면 별도 PR로 `main`에 주기적으로 병합합니다. `main`에는 feature 브랜치가 직접 닿지 않습니다.
+
+<img src="./docs/diagrams/branch-history.svg" alt="dev가 없던 시절 main에 직행 머지되던 PR #2·#3 이후 4e75a09 지점에서 dev 브랜치가 생겼고, 지금은 feature/pm-readme-tutorial이 PR #4로 dev 병합을 기다리는 중인 이 저장소의 실제 흐름" width="920">
+
+이 저장소에서 실제로 있었던 일: `dev`가 없던 시절엔 PR #2(`billyux/frontend-test`), PR #3(`feature/pm-docs-turso-update`)이 전부 `main`으로 직행했습니다. `4e75a09` 지점에서 `dev`를 새로 만든 뒤로는 feature 브랜치가 dev에서 갈라져 dev로 되돌아가는 방식으로 바뀌었고, PR #4가 그 첫 사례로 리뷰를 기다리는 중입니다. `main`은 아직 `4e75a09` 그대로이며, dev에 변경사항이 쌓이면 별도 PR로 옮겨질 예정입니다.
+
 ## 튜토리얼: 브랜치 생성 → 커밋 → PR
 
 ### 0. 최초 1회만: 저장소 클론 및 신원 등록
