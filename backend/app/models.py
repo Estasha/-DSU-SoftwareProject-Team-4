@@ -46,3 +46,22 @@ class TransitScore(Base):
     score = Column(Float, nullable=False)
 
     region = relationship("Region", back_populates="transit_score")
+
+
+class Facility(Base):
+    """위치 기반 시설 공통 테이블 (CCTV, 어린이집, 병원 등).
+
+    행정동 단위로 집계하는 위 Score 테이블들과 달리, 지도 클릭 지점 기준
+    반경 검색(예: 방범지도)에 쓰기 위해 개별 시설의 위도/경도를 그대로 저장한다.
+    데이터셋마다 컬럼명이 달라도 data/scripts/clean_facilities.py에서
+    이 스키마(category, facility_type, name, latitude, longitude)로 통일해서 적재한다.
+    """
+    __tablename__ = "facilities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    category = Column(String, nullable=False, index=True)  # "안전" | "생활편의"
+    facility_type = Column(String, nullable=False, index=True)  # "cctv" | "어린이집" | "병원" 등
+    name = Column(String, nullable=True)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    source = Column(String, nullable=True)  # 원본 데이터셋명 (출처 추적용)
