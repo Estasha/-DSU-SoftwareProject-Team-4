@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchNearbyFacilities } from "../api/facilities.js";
 
-const KAKAO_JS_KEY = import.meta.env.VITE_KAKAO_JS_KEY;
+const NAVER_CLIENT_ID = import.meta.env.VITE_NAVER_CLIENT_ID;
 const SASANG_CENTER = { lat: 35.1524, lng: 128.9905 }; // 부산 사상구청 부근
 const RADIUS_M = 100;
 
-function loadKakaoSdk() {
+function loadNaverSdk() {
   return new Promise((resolve, reject) => {
-    if (window.kakao && window.kakao.maps) {
-      resolve(window.kakao);
+    if (window.naver && window.naver.maps) {
+      resolve(window.naver);
       return;
     }
     const script = document.createElement("script");
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false`;
-    script.onload = () => window.kakao.maps.load(() => resolve(window.kakao));
-    script.onerror = () => reject(new Error("카카오맵 SDK 로드 실패"));
+    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${NAVER_CLIENT_ID}`;
+    script.onload = () => resolve(window.naver);
+    script.onerror = () => reject(new Error("네이버 지도 SDK 로드 실패"));
     document.head.appendChild(script);
   });
 }
@@ -27,36 +27,36 @@ export default function SafetyMapPage() {
   const [result, setResult] = useState(null);
 
   useEffect(() => {
-    if (!KAKAO_JS_KEY) {
-      setError("VITE_KAKAO_JS_KEY가 설정되지 않았습니다. frontend/.env에 키를 넣어주세요.");
+    if (!NAVER_CLIENT_ID) {
+      setError("VITE_NAVER_CLIENT_ID가 설정되지 않았습니다. frontend/.env에 키를 넣어주세요.");
       return;
     }
 
     let cancelled = false;
 
-    loadKakaoSdk()
-      .then((kakao) => {
+    loadNaverSdk()
+      .then((naver) => {
         if (cancelled || !mapContainerRef.current) return;
 
-        const map = new kakao.maps.Map(mapContainerRef.current, {
-          center: new kakao.maps.LatLng(SASANG_CENTER.lat, SASANG_CENTER.lng),
-          level: 4,
+        const map = new naver.maps.Map(mapContainerRef.current, {
+          center: new naver.maps.LatLng(SASANG_CENTER.lat, SASANG_CENTER.lng),
+          zoom: 15,
         });
         mapRef.current = map;
 
-        kakao.maps.event.addListener(map, "click", async (mouseEvent) => {
-          const lat = mouseEvent.latLng.getLat();
-          const lng = mouseEvent.latLng.getLng();
+        naver.maps.Event.addListener(map, "click", async (pointerEvent) => {
+          const lat = pointerEvent.coord.lat();
+          const lng = pointerEvent.coord.lng();
 
           overlaysRef.current.forEach((overlay) => overlay.setMap(null));
           overlaysRef.current = [];
 
-          const position = new kakao.maps.LatLng(lat, lng);
+          const position = new naver.maps.LatLng(lat, lng);
 
-          const marker = new kakao.maps.Marker({ position });
-          marker.setMap(map);
+          const marker = new naver.maps.Marker({ position, map });
 
-          const circle = new kakao.maps.Circle({
+          const circle = new naver.maps.Circle({
+            map,
             center: position,
             radius: RADIUS_M,
             strokeWeight: 2,
@@ -65,7 +65,6 @@ export default function SafetyMapPage() {
             fillColor: "#3b82f6",
             fillOpacity: 0.2,
           });
-          circle.setMap(map);
 
           overlaysRef.current = [marker, circle];
 
