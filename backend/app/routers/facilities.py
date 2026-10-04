@@ -15,13 +15,16 @@ def get_nearby_facilities(
     lat: float,
     lng: float,
     radius_m: float = 100,
-    facility_type: str | None = Query(default=None, description="예: cctv (생략하면 전체 종류)"),
+    facility_type: str | None = Query(default=None, description="예: cctv, 소매 (생략하면 전체 종류)"),
+    category: str | None = Query(default=None, description="예: 안전, 생활편의, 음식점 (생략하면 전체)"),
     db: Session = Depends(get_db),
 ):
     """클릭한 좌표(lat, lng) 기준 반경(radius_m) 안에 있는 시설 개수와 목록을 반환."""
     query = db.query(models.Facility)
     if facility_type:
         query = query.filter(models.Facility.facility_type == facility_type)
+    if category:
+        query = query.filter(models.Facility.category == category)
 
     nearby = []
     for facility in query.all():

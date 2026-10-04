@@ -18,7 +18,7 @@ export default function App() {
           onClick={() => setTab("map")}
           className={`px-4 py-2 rounded-lg ${tab === "map" ? "bg-blue-600 text-white" : "bg-gray-100"}`}
         >
-          방범지도 (테스트)
+          동네 지도 (테스트)
         </button>
       </nav>
 
