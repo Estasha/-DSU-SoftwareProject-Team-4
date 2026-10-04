@@ -41,13 +41,22 @@ export default function SafetyMapPage() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const [layerKey, setLayerKey] = useState("safety");
+  const layerKeyRef = useRef(layerKey);
 
   const layer = LAYERS.find((l) => l.key === layerKey);
+
+  // 지도 클릭 리스너는 처음 한 번만 등록되기 때문에, 그 안에서 state를 직접 읽으면
+  // 마운트 시점의 값에 고정돼버림(stale closure) — 그래서 ref로 최신 레이어를 추적함
+  useEffect(() => {
+    layerKeyRef.current = layerKey;
+  }, [layerKey]);
 
   async function searchAt(lat, lng) {
     const naver = naverRef.current;
     const map = mapRef.current;
     if (!naver || !map) return;
+
+    const layer = LAYERS.find((l) => l.key === layerKeyRef.current);
 
     overlaysRef.current.forEach((overlay) => overlay.setMap(null));
     overlaysRef.current = [];
