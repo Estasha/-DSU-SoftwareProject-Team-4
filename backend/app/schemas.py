@@ -11,3 +11,19 @@ class ScoreResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class FacilityOut(BaseModel):
+    name: str | None
+    facility_type: str
+    latitude: float
+    longitude: float
+    distance_m: float
+
+    class Config:
+        from_attributes = True
+
+
+class NearbyFacilitiesResponse(BaseModel):
+    count: int
+    facilities: list[FacilityOut]

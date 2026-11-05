@@ -1,20 +1,20 @@
 import { useState } from "react";
 import SearchBar from "../components/SearchBar.jsx";
-import ScoreCard from "../components/ScoreCard.jsx";
-import { fetchScore } from "../api/score.js";
+import { fetchGeocode } from "../api/geocode.js";
 
-export default function ReportPage() {
-  const [data, setData] = useState(null);
+// 점수 계산(fetchScore/api/score.js)은 지역 데이터가 아직 없어서 당분간 비활성화.
+// 주소 검색은 지도 이동(지오코딩)까지만 수행한다.
+// 지오코딩은 네이버 geocoder 대신 백엔드(카카오 주소+장소명 검색)를 쓴다 — 장소명도 인식됨.
+export default function ReportPage({ onLocate } = {}) {
   const [error, setError] = useState(null);
 
   async function handleSearch(address) {
     setError(null);
     try {
-      const result = await fetchScore(address);
-      setData(result);
+      const point = await fetchGeocode(address);
+      if (onLocate) onLocate(point);
     } catch (e) {
       setError(e.message);
-      setData(null);
     }
   }
 
@@ -24,17 +24,6 @@ export default function ReportPage() {
       <SearchBar onSearch={handleSearch} />
 
       {error && <p className="text-red-600">{error}</p>}
-
-      {data && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">{data.region} 종합 점수: {data.final_score}점</h2>
-          <div className="grid grid-cols-3 gap-4">
-            <ScoreCard title="안전" score={data.safety_score} />
-            <ScoreCard title="생활편의" score={data.facility_score} />
-            <ScoreCard title="교통" score={data.transit_score} />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
