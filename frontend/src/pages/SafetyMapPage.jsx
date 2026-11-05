@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchNearbyFacilities } from "../api/facilities.js";
+import { getRadiusLimit, RADIUS_MIN, RADIUS_STEP } from "../lib/settings.js";
+import { loadNaverSdk } from "../lib/naverMaps.js";
 
-const NAVER_CLIENT_ID = import.meta.env.VITE_NAVER_CLIENT_ID;
 const SASANG_CENTER = { lat: 35.1524, lng: 128.9905 }; // 부산 사상구청 부근
-const RADIUS_M = 100;
 
 const LAYERS = [
   { key: "safety", label: "안전 (CCTV)", category: "안전", color: "#dc2626" },
@@ -12,20 +12,6 @@ const LAYERS = [
   { key: "transit", label: "교통", category: "교통", color: "#2563eb" },
 ];
 
-function loadNaverSdk() {
-  return new Promise((resolve, reject) => {
-    if (window.naver && window.naver.maps) {
-      resolve(window.naver);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${NAVER_CLIENT_ID}`;
-    script.onload = () => resolve(window.naver);
-    script.onerror = () => reject(new Error("네이버 지도 SDK 로드 실패"));
-    document.head.appendChild(script);
-  });
-}
-
 function makeDotIcon(naver, color) {
   return {
     content: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,0.5);"></div>`,
@@ -33,24 +19,48 @@ function makeDotIcon(naver, color) {
   };
 }
 
-export default function SafetyMapPage() {
+export default function SafetyMapPage({ focusPoint } = {}) {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const naverRef = useRef(null);
   const overlaysRef = useRef([]);
   const lastClickRef = useRef(null);
+  const pendingFocusRef = useRef(null);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const [layerKey, setLayerKey] = useState("safety");
   const layerKeyRef = useRef(layerKey);
+  // 관리자 메뉴에서 설정한 허용 최대값은 지도가 열릴 때 한 번만 읽어온다(이후 변경은 다음 방문부터 적용)
+  const [radiusLimit] = useState(() => getRadiusLimit());
+  const [radiusM, setRadiusM] = useState(() => getRadiusLimit());
+  const radiusRef = useRef(radiusM);
 
   const layer = LAYERS.find((l) => l.key === layerKey);
 
   // 지도 클릭 리스너는 처음 한 번만 등록되기 때문에, 그 안에서 state를 직접 읽으면
-  // 마운트 시점의 값에 고정돼버림(stale closure) — 그래서 ref로 최신 레이어를 추적함
+  // 마운트 시점의 값에 고정돼버림(stale closure) — 그래서 ref로 최신 레이어/반경을 추적함
   useEffect(() => {
     layerKeyRef.current = layerKey;
   }, [layerKey]);
+
+  useEffect(() => {
+    radiusRef.current = radiusM;
+  }, [radiusM]);
+
+  // 주소 검색으로 찾은 지점으로 지도를 이동시킨다. SDK/지도가 아직 준비 안 됐으면
+  // pendingFocusRef에 저장해두고, 지도 초기화가 끝난 뒤 적용한다.
+  function flyTo(lat, lng) {
+    const naver = naverRef.current;
+    const map = mapRef.current;
+    if (!naver || !map) {
+      pendingFocusRef.current = { lat, lng };
+      return;
+    }
+    map.setCenter(new naver.maps.LatLng(lat, lng));
+    map.setZoom(16);
+    lastClickRef.current = { lat, lng };
+    searchAt(lat, lng);
+  }
 
   async function searchAt(lat, lng) {
     const naver = naverRef.current;
@@ -69,7 +79,7 @@ export default function SafetyMapPage() {
     const circle = new naver.maps.Circle({
       map,
       center: position,
-      radius: RADIUS_M,
+      radius: radiusRef.current,
       strokeWeight: 2,
       strokeColor: "#2563eb",
       strokeOpacity: 0.8,
@@ -80,8 +90,9 @@ export default function SafetyMapPage() {
     overlaysRef.current = [marker, circle];
 
     setResult({ lat, lng, loading: true });
+    setError(null);
     try {
-      const data = await fetchNearbyFacilities(lat, lng, RADIUS_M, { category: layer.category });
+      const data = await fetchNearbyFacilities(lat, lng, radiusRef.current, { category: layer.category });
 
       const facilityMarkers = data.facilities.map((f) => {
         const fMarker = new naver.maps.Marker({
@@ -112,11 +123,6 @@ export default function SafetyMapPage() {
   }
 
   useEffect(() => {
-    if (!NAVER_CLIENT_ID) {
-      setError("VITE_NAVER_CLIENT_ID가 설정되지 않았습니다. frontend/.env에 키를 넣어주세요.");
-      return;
-    }
-
     let cancelled = false;
 
     loadNaverSdk()
@@ -136,6 +142,12 @@ export default function SafetyMapPage() {
           lastClickRef.current = { lat, lng };
           searchAt(lat, lng);
         });
+
+        if (pendingFocusRef.current) {
+          const { lat, lng } = pendingFocusRef.current;
+          pendingFocusRef.current = null;
+          flyTo(lat, lng);
+        }
       })
       .catch((e) => setError(e.message));
 
@@ -145,19 +157,25 @@ export default function SafetyMapPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 레이어를 바꾸면, 이미 클릭했던 지점 기준으로 다시 조회
+  // 레이어나 검색 범위를 바꾸면, 이미 클릭했던 지점 기준으로 다시 조회
   useEffect(() => {
     if (lastClickRef.current) {
       searchAt(lastClickRef.current.lat, lastClickRef.current.lng);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [layerKey]);
+  }, [layerKey, radiusM]);
+
+  // 주소 검색(ReportPage)에서 좌표를 찾으면 지도를 그 지점으로 이동
+  useEffect(() => {
+    if (focusPoint) flyTo(focusPoint.lat, focusPoint.lng);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusPoint]);
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-4">
+    <div className="max-w-4xl mx-auto p-6 space-y-4">
       <h1 className="text-2xl font-bold">동네 편의·방범 지도 (사상구, 부산)</h1>
       <p className="text-sm text-gray-500">
-        항목을 고르고 지도를 클릭하면 그 지점 반경 {RADIUS_M}m 안의 위치(점)와 개수를 보여줍니다. 점을 클릭하면 이름이 뜹니다.
+        항목을 고르고 지도를 클릭하면 그 지점 반경 {radiusM}m 안의 위치(점)와 개수를 보여줍니다. 점을 클릭하면 이름이 뜹니다.
       </p>
 
       <div className="flex gap-2">
@@ -177,7 +195,27 @@ export default function SafetyMapPage() {
 
       {error && <p className="text-red-600">{error}</p>}
 
-      <div ref={mapContainerRef} className="w-full h-[420px] rounded-lg border" />
+      <div className="flex flex-col md:flex-row gap-4">
+        <div ref={mapContainerRef} className="flex-1 h-[420px] rounded-lg border" />
+
+        <div className="w-full md:w-56 shrink-0 p-4 rounded-lg border space-y-3">
+          <h2 className="font-semibold text-sm">검색 범위</h2>
+          <input
+            type="range"
+            min={RADIUS_MIN}
+            max={radiusLimit}
+            step={RADIUS_STEP}
+            value={radiusM}
+            onChange={(e) => setRadiusM(Number(e.target.value))}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-gray-400">
+            <span>{RADIUS_MIN}m</span>
+            <span className="text-base font-semibold text-gray-800">{radiusM}m</span>
+            <span>{radiusLimit}m</span>
+          </div>
+        </div>
+      </div>
 
       {result && (
         <div className="p-4 rounded-lg shadow bg-white space-y-2">
@@ -185,7 +223,7 @@ export default function SafetyMapPage() {
             클릭 좌표: {result.lat.toFixed(5)}, {result.lng.toFixed(5)}
           </p>
           <p className="text-lg font-semibold">
-            반경 {RADIUS_M}m 내 {layer.label}: {result.loading ? "조회 중..." : `${result.count}개`}
+            반경 {radiusM}m 내 {layer.label}: {result.loading ? "조회 중..." : `${result.count}개`}
           </p>
 
           {result.facilities && result.facilities.length > 0 && (

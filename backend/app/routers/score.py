@@ -6,6 +6,7 @@ from ..db import get_db
 from .. import models
 from ..schemas import ScoreResponse
 from ..services.geocoding import geocode
+from ..services.region_matching import find_nearest_region
 from ..services.scoring import calc_final_score
 
 router = APIRouter(prefix="/api", tags=["score"])
@@ -16,15 +17,14 @@ def get_score(address: str, db: Session = Depends(get_db)):
     """주소를 받아 해당 지역의 종합 점수를 반환.
 
     흐름: 주소 → 좌표(지오코딩) → 지역 매칭 → 지표별 점수 조회 → 가중합 계산
-    지역 매칭 로직(좌표 → 행정동)은 DB 스키마 확정 후 구현 필요.
     """
     try:
         lat, lng = geocode(address)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-    # TODO: 좌표(lat, lng) 기준으로 소속 행정동(Region)을 찾는 로직 구현
-    region = db.query(models.Region).first()
+    regions = db.query(models.Region).all()
+    region = find_nearest_region(lat, lng, regions)
     if not region:
         raise HTTPException(status_code=404, detail="일치하는 지역 데이터가 없습니다.")
 
