@@ -104,6 +104,7 @@ def main():
     subway_raw_path = RAW_DIR / "부산_도시철도역사정보.csv"
     bus_processed_path = PROCESSED_DIR / "사상구_버스정류소.csv"
     hospital_processed_path = PROCESSED_DIR / "사상구_병원정보.csv"
+    senior_processed_path = PROCESSED_DIR / "사상구_노인교실.csv"
 
     combined_parts = []
 
@@ -188,6 +189,24 @@ def main():
         print(f"병원(HIRA): {len(hospital_std)}건")
     else:
         print(f"원본 파일 없음: {hospital_processed_path} (건너뜀)")
+
+    if senior_processed_path.exists():
+        # 공공데이터 없음 -> 사상구청 홈페이지(사람이 직접 확인) 목록을 카카오 지오코딩으로
+        # 좌표 변환해둔 결과 (data/scripts/geocode_senior_classrooms.py). 휴관 시설 1곳 제외함.
+        senior_df = pd.read_csv(senior_processed_path, encoding="utf-8-sig")
+        senior_std = standardize(
+            senior_df,
+            category="생활편의",
+            facility_type="노인교실",
+            source="사상구청 홈페이지(수동 확인, 2026-11-05 기준)",
+            name_col="name",
+            lat_col="latitude",
+            lng_col="longitude",
+        )
+        combined_parts.append(senior_std)
+        print(f"노인교실: {len(senior_std)}건")
+    else:
+        print(f"원본 파일 없음: {senior_processed_path} (건너뜀)")
 
     if not combined_parts:
         print("처리할 데이터가 없습니다.")
