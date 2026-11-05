@@ -103,6 +103,7 @@ def main():
     stores_raw_path = RAW_DIR / "사상구_상가업소정보.csv"
     subway_raw_path = RAW_DIR / "부산_도시철도역사정보.csv"
     bus_processed_path = PROCESSED_DIR / "사상구_버스정류소.csv"
+    hospital_processed_path = PROCESSED_DIR / "사상구_병원정보.csv"
 
     combined_parts = []
 
@@ -170,6 +171,23 @@ def main():
         print(f"버스정류장: {len(bus_std)}건 (사상구 행정동 경계 기준)")
     else:
         print(f"원본 파일 없음: {bus_processed_path} (건너뜀)")
+
+    if hospital_processed_path.exists():
+        # HIRA(건강보험심사평가원) 기반 공식 의료기관 목록. 상가업소정보의 "보건의료"
+        # 카테고리(의원·한의원 등 사업자 등록 기준)와 일부 겹칠 수 있음 — 학기 프로젝트
+        # 규모에서는 완전 중복 제거까지는 안 하고, 별도 facility_type으로 구분만 해둠
+        hospital_df = pd.read_csv(hospital_processed_path, encoding="utf-8-sig")
+        hospital_std = standardize(
+            hospital_df,
+            category="생활편의",
+            facility_type="병원(HIRA)",
+            source="건강보험심사평가원_병원정보서비스",
+            name_col="병원명",
+        )
+        combined_parts.append(hospital_std)
+        print(f"병원(HIRA): {len(hospital_std)}건")
+    else:
+        print(f"원본 파일 없음: {hospital_processed_path} (건너뜀)")
 
     if not combined_parts:
         print("처리할 데이터가 없습니다.")
