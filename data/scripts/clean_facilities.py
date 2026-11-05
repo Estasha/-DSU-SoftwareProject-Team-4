@@ -102,7 +102,7 @@ def main():
     cctv_raw_path = RAW_DIR / "부산_방범용_CCTV_전체.csv"
     stores_raw_path = RAW_DIR / "사상구_상가업소정보.csv"
     subway_raw_path = RAW_DIR / "부산_도시철도역사정보.csv"
-    bus_raw_path = RAW_DIR / "전국_버스정류장_위치정보.csv"
+    bus_processed_path = PROCESSED_DIR / "사상구_버스정류소.csv"
 
     combined_parts = []
 
@@ -152,26 +152,24 @@ def main():
     else:
         print(f"원본 파일 없음: {subway_raw_path} (건너뜀)")
 
-    if bus_raw_path.exists():
-        # 전국 통합 파일이라 '구' 컬럼이 아예 없음 -> 기존 사상구 데이터의 위경도 범위로
-        # 근사 필터링 (행정구역 경계가 아니라 사각형 범위라 경계 근처는 약간의 오차 있음)
-        bus_df = pd.read_csv(bus_raw_path, encoding="cp949")
-        bus_df = bus_df[
-            bus_df["위도"].between(35.12, 35.197) & bus_df["경도"].between(128.962, 129.017)
-        ]
+    if bus_processed_path.exists():
+        # 팀원이 TAGO API + 사상구 행정동 경계 폴리곤으로 이미 정확하게 필터링해둔 결과
+        # (data/scripts/collect_busstop_api.py 참고 — citycode는 행정구역과 안 맞아서
+        # point-in-polygon 판정으로 거름)
+        bus_df = pd.read_csv(bus_processed_path, encoding="utf-8-sig")
         bus_std = standardize(
             bus_df,
             category="교통",
             facility_type="버스정류장",
-            source="국토교통부_전국 버스정류장 위치정보_20261020",
-            name_col="정류장명",
+            source="국가대중교통정보센터(TAGO)_버스정류소정보",
+            name_col="정류소명",
             lat_col="위도",
             lng_col="경도",
         )
         combined_parts.append(bus_std)
-        print(f"버스정류장: {len(bus_std)}건 (사상구 근사 범위)")
+        print(f"버스정류장: {len(bus_std)}건 (사상구 행정동 경계 기준)")
     else:
-        print(f"원본 파일 없음: {bus_raw_path} (건너뜀)")
+        print(f"원본 파일 없음: {bus_processed_path} (건너뜀)")
 
     if not combined_parts:
         print("처리할 데이터가 없습니다.")
