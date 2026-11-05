@@ -9,6 +9,7 @@ const LAYERS = [
   { key: "safety", label: "안전 (CCTV)", category: "안전", color: "#dc2626" },
   { key: "life", label: "생활편의", category: "생활편의", color: "#16a34a" },
   { key: "food", label: "음식점", category: "음식점", color: "#f59e0b" },
+  { key: "transit", label: "교통", category: "교통", color: "#2563eb" },
 ];
 
 function loadNaverSdk() {
