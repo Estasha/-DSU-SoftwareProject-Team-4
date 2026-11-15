@@ -59,8 +59,10 @@ class Facility(Base):
     __tablename__ = "facilities"
 
     id = Column(Integer, primary_key=True, index=True)
-    category = Column(String, nullable=False, index=True)  # "안전" | "생활편의"
-    facility_type = Column(String, nullable=False, index=True)  # "cctv" | "어린이집" | "병원" 등
+    category = Column(String, nullable=False, index=True)  # 지도 레이어 구분: "안전" | "생활편의" | "음식점" | "교통"
+    # 세부 유형. 상가는 업종 소분류("편의점", "내과/소아과 의원" 등). 점수 가중치는
+    # services/facility_weights.py 표에서 이 값으로 찾는다(행에 가중치를 저장하지 않음)
+    facility_type = Column(String, nullable=False, index=True)
     name = Column(String, nullable=True)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
