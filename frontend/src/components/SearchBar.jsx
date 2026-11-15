@@ -14,7 +14,7 @@ export default function SearchBar({ onSearch }) {
         type="text"
         value={address}
         onChange={(e) => setAddress(e.target.value)}
-        placeholder="예: 부산광역시 해운대구 우동"
+        placeholder="예: 부산광역시 사상구청"
         className="flex-1 border rounded-lg px-4 py-2"
       />
       <button type="submit" className="bg-blue-600 text-white rounded-lg px-4 py-2">

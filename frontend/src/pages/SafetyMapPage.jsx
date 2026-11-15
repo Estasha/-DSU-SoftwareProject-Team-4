@@ -24,6 +24,9 @@ export default function SafetyMapPage({ focusPoint } = {}) {
   const mapRef = useRef(null);
   const naverRef = useRef(null);
   const overlaysRef = useRef([]);
+  const infoWindowRef = useRef(null);
+  const infoWindowMarkerRef = useRef(null);
+  const searchIdRef = useRef(0);
   const lastClickRef = useRef(null);
   const pendingFocusRef = useRef(null);
   const [error, setError] = useState(null);
@@ -68,9 +71,13 @@ export default function SafetyMapPage({ focusPoint } = {}) {
     if (!naver || !map) return;
 
     const layer = LAYERS.find((l) => l.key === layerKeyRef.current);
+    // 빠르게 여러 번 클릭하면 이전 요청의 응답이 늦게 도착할 수 있어서, 최신 요청 응답만 반영한다
+    const searchId = ++searchIdRef.current;
 
     overlaysRef.current.forEach((overlay) => overlay.setMap(null));
     overlaysRef.current = [];
+    // 시설 이름 말풍선은 마커와 별개로 지도에 붙어 있어서 따로 닫아야 한다
+    infoWindowRef.current?.close();
 
     const position = new naver.maps.LatLng(lat, lng);
 
@@ -93,6 +100,7 @@ export default function SafetyMapPage({ focusPoint } = {}) {
     setError(null);
     try {
       const data = await fetchNearbyFacilities(lat, lng, radiusRef.current, { category: layer.category });
+      if (searchId !== searchIdRef.current) return;
 
       const facilityMarkers = data.facilities.map((f) => {
         const fMarker = new naver.maps.Marker({
@@ -103,10 +111,17 @@ export default function SafetyMapPage({ focusPoint } = {}) {
           zIndex: 50,
         });
 
-        const infoWindow = new naver.maps.InfoWindow({
-          content: `<div style="padding:6px 10px;font-size:12px;">${f.name || layer.label}<br/>${f.distance_m}m</div>`,
-        });
         naver.maps.Event.addListener(fMarker, "click", () => {
+          const infoWindow = infoWindowRef.current;
+          // 이미 이 마커의 말풍선이 열려 있으면 다시 클릭했을 때 닫는다
+          if (infoWindow.getMap() && infoWindowMarkerRef.current === fMarker) {
+            infoWindow.close();
+            return;
+          }
+          infoWindowMarkerRef.current = fMarker;
+          infoWindow.setContent(
+            `<div style="padding:6px 10px;font-size:12px;">${f.name || layer.label}<br/>${f.distance_m}m</div>`
+          );
           infoWindow.open(map, fMarker);
         });
 
@@ -117,6 +132,7 @@ export default function SafetyMapPage({ focusPoint } = {}) {
 
       setResult({ lat, lng, count: data.count, facilities: data.facilities });
     } catch (e) {
+      if (searchId !== searchIdRef.current) return;
       setError(e.message);
       setResult(null);
     }
@@ -135,6 +151,7 @@ export default function SafetyMapPage({ focusPoint } = {}) {
           zoom: 15,
         });
         mapRef.current = map;
+        infoWindowRef.current = new naver.maps.InfoWindow({ content: "" });
 
         naver.maps.Event.addListener(map, "click", (pointerEvent) => {
           const lat = pointerEvent.coord.lat();
