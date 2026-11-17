@@ -189,7 +189,7 @@ export default function SafetyMapPage({ focusPoint } = {}) {
   }, [focusPoint]);
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-4">
+    <div className="space-y-4">
       <h1 className="text-2xl font-bold">동네 편의·방범 지도 (사상구, 부산)</h1>
       <p className="text-sm text-gray-500">
         항목을 고르고 지도를 클릭하면 그 지점 반경 {radiusM}m 안의 위치(점)와 개수를 보여줍니다. 점을 클릭하면 이름이 뜹니다.

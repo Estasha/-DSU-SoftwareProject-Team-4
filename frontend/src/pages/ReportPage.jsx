@@ -39,7 +39,7 @@ export default function ReportPage({ onLocate } = {}) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <h1 className="text-2xl font-bold">동네 진단</h1>
 
       <div className="flex gap-2">
