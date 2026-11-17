@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import score, facilities, geocode
+from .routers import score, facilities, geocode, admin_weights
 
 load_dotenv()
 
@@ -22,6 +22,7 @@ app.add_middleware(
 app.include_router(score.router)
 app.include_router(facilities.router)
 app.include_router(geocode.router)
+app.include_router(admin_weights.router)
 
 
 @app.get("/")

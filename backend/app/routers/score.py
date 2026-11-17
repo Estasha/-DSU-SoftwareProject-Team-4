@@ -3,40 +3,34 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..db import get_db
-from .. import models
 from ..schemas import ScoreResponse
 from ..services.geocoding import geocode
-from ..services.region_matching import find_nearest_region
-from ..services.scoring import calc_final_score
+from ..services.neighborhood_score import DEFAULT_PERSONA, calculate_score
 
 router = APIRouter(prefix="/api", tags=["score"])
 
 
 @router.get("/score", response_model=ScoreResponse)
-def get_score(address: str, db: Session = Depends(get_db)):
-    """주소를 받아 해당 지역의 종합 점수를 반환.
+def get_score(address: str, persona: str = DEFAULT_PERSONA, db: Session = Depends(get_db)):
+    """주소를 받아 해당 지점의 정주여건 점수를 반환.
 
-    흐름: 주소 → 좌표(지오코딩) → 지역 매칭 → 지표별 점수 조회 → 가중합 계산
+    흐름: 주소 → 좌표(지오코딩) → 반경 내 시설 조회 → 유형 가중치 × 거리 감쇠 →
+    카테고리별 포화 점수 → 가중합. 공식은 docs/동네 진단 서비스 정주여건 점수 계산 방식.md 참고.
+    persona: "개인" | "가족" | "노인" — 카테고리·시설 유형 가중치가 페르소나별로 다름.
     """
     try:
         lat, lng = geocode(address)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-    regions = db.query(models.Region).all()
-    region = find_nearest_region(lat, lng, regions)
-    if not region:
-        raise HTTPException(status_code=404, detail="일치하는 지역 데이터가 없습니다.")
+    return get_score_by_point(lat, lng, persona, db)
 
-    safety = region.safety_score.score if region.safety_score else 0
-    facility = region.facility_score.score if region.facility_score else 0
-    transit = region.transit_score.score if region.transit_score else 0
-    final = calc_final_score(safety, facility, transit)
 
+@router.get("/score/point", response_model=ScoreResponse)
+def get_score_by_point(lat: float, lng: float, persona: str = DEFAULT_PERSONA, db: Session = Depends(get_db)):
+    """좌표를 직접 받아 점수를 반환 (지도 클릭 등 지오코딩이 필요 없는 경우)."""
+    result = calculate_score(lat, lng, db, persona=persona)
     return ScoreResponse(
-        region=region.name,
-        safety_score=safety,
-        facility_score=facility,
-        transit_score=transit,
-        final_score=final,
+        total_score=result.total_score,
+        categories=result.categories,
     )

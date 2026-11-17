@@ -21,10 +21,15 @@ try:
     with open(PROCESSED_CSV, encoding="utf-8-sig") as f:
         rows = list(csv.DictReader(f))
 
-    if replace:
-        deleted = db.query(Facility).delete()
-        print(f"--replace: 기존 facilities {deleted}건 삭제")
+    BATCH_SIZE = 300  # 한 번에 너무 많이 넣으면 Turso 연결이 끊김(Hrana 오류) - 나눠서 커밋
 
+    if replace:
+        db.query(Facility).delete()
+        db.commit()
+        print("--replace: 기존 facilities 삭제 완료")
+
+    added = 0
+    pending = []
     for row in rows:
         if not replace:
             exists = (
@@ -38,7 +43,7 @@ try:
             )
             if exists:
                 continue
-        db.add(
+        pending.append(
             Facility(
                 category=row["category"],
                 facility_type=row["facility_type"],
@@ -48,8 +53,18 @@ try:
                 source=row["source"] or None,
             )
         )
+        if len(pending) >= BATCH_SIZE:
+            db.add_all(pending)
+            db.commit()
+            added += len(pending)
+            print(f"  {added}건 커밋됨...")
+            pending = []
 
-    db.commit()
-    print(f"완료: CSV {len(rows)}건 처리, 현재 facilities 총 {db.query(Facility).count()}건")
+    if pending:
+        db.add_all(pending)
+        db.commit()
+        added += len(pending)
+
+    print(f"완료: CSV {len(rows)}건 처리, {added}건 추가, 현재 facilities 총 {db.query(Facility).count()}건")
 finally:
     db.close()
