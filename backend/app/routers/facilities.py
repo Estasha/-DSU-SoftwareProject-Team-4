@@ -1,4 +1,6 @@
 """방범지도 등 반경 기반 시설 조회 엔드포인트"""
+import math
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -26,6 +28,13 @@ def get_nearby_facilities(
     if category:
         query = query.filter(models.Facility.category == category)
 
+    # category/facility_type을 안 주면(전체 조회) 매번 전체 시설을 다 가져오게 되므로,
+    # 위경도 사각형으로 먼저 후보를 좁혀서 Turso 조회량을 줄인다
+    d_lat = radius_m / 111_320
+    d_lng = radius_m / (111_320 * max(math.cos(math.radians(lat)), 0.01))
+    query = query.filter(models.Facility.latitude.between(lat - d_lat, lat + d_lat))
+    query = query.filter(models.Facility.longitude.between(lng - d_lng, lng + d_lng))
+
     nearby = []
     for facility in query.all():
         distance = haversine_distance_m(lat, lng, facility.latitude, facility.longitude)
@@ -33,6 +42,7 @@ def get_nearby_facilities(
             nearby.append(
                 FacilityOut(
                     name=facility.name,
+                    category=facility.category,
                     facility_type=facility.facility_type,
                     latitude=facility.latitude,
                     longitude=facility.longitude,

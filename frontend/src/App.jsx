@@ -2,6 +2,7 @@ import { useState } from "react";
 import ReportPage from "./pages/ReportPage.jsx";
 import SafetyMapPage from "./pages/SafetyMapPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
+import { PERSONAS } from "./api/weights.js";
 
 // FR-08: 관리자 메뉴 진입 - 클라이언트에서만 확인하는 암호라, 개발자도구로 코드를 보면
 // 누구나 알 수 있다. 실제 운영에선 서버 쪽 인증으로 바꿔야 함.
@@ -13,6 +14,7 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(null);
   const [focusPoint, setFocusPoint] = useState(null);
+  const [persona, setPersona] = useState(PERSONAS[0]);
 
   function openPasswordPrompt() {
     setPassword("");
@@ -89,8 +91,8 @@ export default function App() {
         <AdminPage />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start max-w-7xl mx-auto p-4">
-          <ReportPage onLocate={setFocusPoint} />
-          <SafetyMapPage focusPoint={focusPoint} />
+          <ReportPage persona={persona} onPersonaChange={setPersona} onLocate={setFocusPoint} />
+          <SafetyMapPage persona={persona} focusPoint={focusPoint} />
         </div>
       )}
     </div>

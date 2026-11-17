@@ -10,3 +10,13 @@ export async function fetchScore(address, persona) {
   }
   return res.json();
 }
+
+export async function fetchScoreByPoint(lat, lng, persona) {
+  const params = new URLSearchParams({ lat, lng, persona });
+  const res = await fetch(`${API_BASE_URL}/api/score/point?${params}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "점수를 계산하지 못했습니다.");
+  }
+  return res.json();
+}

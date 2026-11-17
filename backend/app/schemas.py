@@ -69,6 +69,7 @@ class CategoryParamUpdate(BaseModel):
 
 class FacilityOut(BaseModel):
     name: str | None
+    category: str
     facility_type: str
     latitude: float
     longitude: float
