@@ -188,6 +188,7 @@ def main():
     bus_processed_path = PROCESSED_DIR / "사상구_버스정류소.csv"
     hospital_processed_path = PROCESSED_DIR / "사상구_병원정보.csv"
     senior_processed_path = PROCESSED_DIR / "사상구_노인교실.csv"
+    school_raw_path = RAW_DIR / "한국교육시설안전원_초중등학교위치.csv"
 
     out_path = PROCESSED_DIR / "facilities.csv"
     previous = pd.read_csv(out_path, encoding="utf-8-sig") if out_path.exists() else None
@@ -306,6 +307,29 @@ def main():
         print(f"노인교실: {len(senior_std)}건")
     else:
         print(f"원본 파일 없음: {senior_processed_path} (건너뜀)")
+
+    if school_raw_path.exists():
+        # 원본은 전국 데이터라 도로명주소에 '사상구'가 들어간 학교만 필터링.
+        # 폐교/분교는 제외(운영상태="운영", 본교분교구분="본교"만 사용)
+        school_df = pd.read_csv(school_raw_path, encoding="utf-8-sig")
+        school_df = school_df[
+            school_df["소재지도로명주소"].astype(str).str.contains("사상구", na=False)
+            & (school_df["운영상태"] == "운영")
+            & (school_df["본교분교구분"] == "본교")
+        ]
+        school_std = standardize(
+            school_df,
+            category="생활편의",
+            facility_type="",
+            source="한국교육시설안전원_초중등학교위치",
+            name_col="학교명",
+        )
+        # 학교급(초등학교/중학교/고등학교)별로 facility_type 구분 — 가중치 표에서 이 이름으로 찾음
+        school_std["facility_type"] = school_df.loc[school_std.index, "학교급구분"]
+        combined_parts.append(school_std)
+        print(f"학교: {len(school_std)}건")
+    else:
+        combined_parts.append(_reuse_processed(previous, "한국교육시설안전원_초중등학교위치", "학교"))
 
     combined_parts = [p for p in combined_parts if p is not None]
     if not combined_parts:

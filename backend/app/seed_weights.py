@@ -50,6 +50,9 @@ FACILITY_TYPE_WEIGHTS = [
     ("지하철역", "지하철", 1.0),
 ]
 
+# 학교(초/중/고)는 아직 가중치 표에 없음 — 지도에는 보이지만 점수 계산에는 반영 안 됨.
+# 페르소나별 중요도(가족은 높게, 노인/개인은 낮게 등)는 노션 AHP 결과 받으면 반영
+
 
 def main():
     Base.metadata.create_all(bind=engine)
