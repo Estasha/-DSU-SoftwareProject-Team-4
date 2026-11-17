@@ -1,4 +1,4 @@
-"""데이터베이스 연결 설정 (Turso libSQL)"""
+"""데이터베이스 연결 설정 (Turso libSQL / 로컬 SQLite 폴백)"""
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -9,7 +9,8 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL이 .env에 설정되어 있지 않습니다. backend/.env.example 참고")
+    # Turso 접속 정보가 없으면 로컬 SQLite 파일로 폴백 (로컬 테스트용)
+    DATABASE_URL = "sqlite:///./test.db"
 
 # sqlalchemy-libsql 드라이버는 URL 쿼리스트링의 authToken을 인식하지 못해서
 # connect_args로 따로 넘겨줘야 함 (안 그러면 "empty JWT token" 에러 발생)
@@ -18,7 +19,12 @@ _auth_token = _url.query.get("authToken")
 if _auth_token:
     _url = _url.difference_update_query(["authToken"])
 
-engine = create_engine(_url, connect_args={"auth_token": _auth_token} if _auth_token else {})
+_connect_args = {"auth_token": _auth_token} if _auth_token else {}
+if DATABASE_URL.startswith("sqlite:///"):
+    # 로컬 SQLite 파일 연결에서만 필요한 옵션 (Turso/libSQL 원격 연결에는 불필요)
+    _connect_args["check_same_thread"] = False
+
+engine = create_engine(_url, connect_args=_connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

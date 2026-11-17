@@ -1,40 +1,52 @@
 import { useState } from "react";
 import SearchBar from "../components/SearchBar.jsx";
-import ScoreCard from "../components/ScoreCard.jsx";
-import { fetchScore } from "../api/score.js";
+import { fetchGeocode } from "../api/geocode.js";
+import { PERSONAS } from "../api/weights.js";
 
-export default function ReportPage() {
-  const [data, setData] = useState(null);
+// 주소 검색 + 페르소나 선택만 담당. 점수·시설 결과는 SafetyMapPage에서 지도와 함께 한 번에 보여준다.
+export default function ReportPage({ persona, onPersonaChange, onLocate } = {}) {
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   async function handleSearch(address) {
     setError(null);
+    setLoading(true);
     try {
-      const result = await fetchScore(address);
-      setData(result);
+      const point = await fetchGeocode(address);
+      if (onLocate) onLocate(point);
     } catch (e) {
       setError(e.message);
-      setData(null);
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
+    <div className="space-y-4">
       <h1 className="text-2xl font-bold">동네 진단</h1>
+
+      <div className="flex gap-2">
+        {PERSONAS.map((p) => (
+          <button
+            key={p}
+            onClick={() => onPersonaChange?.(p)}
+            className={`px-3 py-1.5 rounded-lg text-sm ${
+              persona === p ? "bg-blue-600 text-white" : "bg-gray-100"
+            }`}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+
       <SearchBar onSearch={handleSearch} />
 
+      {loading && <p className="text-sm text-gray-500">위치 찾는 중...</p>}
       {error && <p className="text-red-600">{error}</p>}
 
-      {data && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">{data.region} 종합 점수: {data.final_score}점</h2>
-          <div className="grid grid-cols-3 gap-4">
-            <ScoreCard title="안전" score={data.safety_score} />
-            <ScoreCard title="생활편의" score={data.facility_score} />
-            <ScoreCard title="교통" score={data.transit_score} />
-          </div>
-        </div>
-      )}
+      <p className="text-sm text-gray-500">
+        주소를 검색하거나 오른쪽 지도를 클릭하면, 그 지점의 점수와 주변 시설이 함께 표시됩니다.
+      </p>
     </div>
   );
 }
